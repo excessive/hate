@@ -95,7 +95,7 @@ end
 function hate.run()
 	local config = hate.config
 
-	hate.load()
+	hate.load(arg)
 
 	if config.window then
 		local window = hate.state.window
@@ -137,12 +137,12 @@ function hate.run()
 	hate.quit()
 end
 
-function hate.init(...)
+function hate.init()
 	flags = {
 		gl3 = false
 	}
 
-	for _, v in ipairs{...} do
+	for _, v in ipairs(arg) do
 		for k, _ in pairs(flags) do
 			if v == "--" .. k then
 				flags[k] = true
@@ -150,13 +150,17 @@ function hate.init(...)
 		end
 	end
 
-	local __NULL__ = function() end
-	hate.load = __NULL__
-	hate.quit = __NULL__
-	hate.conf = __NULL__
-	hate.textinput = __NULL__
-	hate.keypressed = __NULL__
-	hate.keyreleased = __NULL__
+	local callbacks = {
+		"load", "quit", "conf",
+		"keypressed", "keyreleased",
+		"textinput"
+	}
+
+	for _, v in ipairs(callbacks) do
+		local __NULL__ = function() end
+		hate[v] = __NULL__
+	end
+
 	hate.event = {}
 	hate.event.pump = handle_events
 	hate.event.quit = function()
@@ -167,10 +171,12 @@ function hate.init(...)
 
 	local config = {
 		window = {
-			width = 854,
-			height = 480,
-			vsync = true
-		}
+			width   = 854,
+			height  = 480,
+			vsync   = true,
+			delay   = 1
+		},
+		filesystem = true
 	}
 
 	hate.conf(config)
@@ -180,6 +186,11 @@ function hate.init(...)
 	hate.state.running = true
 
 	sdl.init(sdl.INIT_EVERYTHING)
+
+	if config.filesystem then
+		hate.filesystem = require(current_folder .. "filesystem")
+		hate.filesystem.init(arg[0])
+	end
 
 	if config.window then
 		if flags.gl3 then
