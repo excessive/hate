@@ -104,10 +104,9 @@ function hate.run()
 		local start = sdl.getTicks()
 		local previous = start / 1000
 		while hate.state.running do
-			local now = (sdl.getTicks() - start) / 1000
-			local dt = now - previous
+			hate.timer.step()
 
-			hate.update(dt)
+			hate.update(hate.timer.getDelta())
 
 			if config.window then
 				gl.ClearColor(255, 0, 255, 255)
@@ -118,13 +117,17 @@ function hate.run()
 				sdl.GL_SwapWindow(window)
 			end
 
-			if config.window and config.window.delay then
-				if config.window.delay > 0 then
-					sdl.delay(config.window.delay)
+			if config.timer then
+				if config.window and config.window.delay then
+					if config.window.delay >= 0.001 then
+						hate.timer.sleep(config.window.delay)
+					end
+				elseif config.window then
+					hate.timer.sleep(0.001)
 				end
-			elseif config.window then
-				sdl.delay(1)
 			end
+
+			-- print(hate.timer.getFPS())
 
 			hate.event.pump()
 		end
@@ -174,9 +177,10 @@ function hate.init()
 			width   = 854,
 			height  = 480,
 			vsync   = true,
-			delay   = 1
+			delay   = 0.001
 		},
-		filesystem = true
+		filesystem = true,
+		timer      = true
 	}
 
 	hate.conf(config)
@@ -186,6 +190,11 @@ function hate.init()
 	hate.state.running = true
 
 	sdl.init(sdl.INIT_EVERYTHING)
+
+	if config.timer then
+		hate.timer = require(current_folder .. "timer")
+		hate.timer.init()
+	end
 
 	if config.filesystem then
 		hate.filesystem = require(current_folder .. "filesystem")
