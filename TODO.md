@@ -1,6 +1,6 @@
 # TODO
 
-* PhysFS bindings
+* Finish PhysFS bindings
 * OpenAL bindings
 * Everything to do with everything that isn't SDL, really.
 * Continue SDL bindings
