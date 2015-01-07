@@ -22,7 +22,7 @@ function filesystem.init(path, name)
 	return status
 end
 
-function filesystem.enumerate(path, callback)
+function filesystem.getDirectoryItems(path, callback)
 	local files = {}
 	local list, i = physfs.enumerateFiles("/"), 0
 	while list[i] ~= nil do
@@ -34,6 +34,16 @@ function filesystem.enumerate(path, callback)
 		i = i + 1
 	end
 	return files
+end
+
+function filesystem.getSize(path)
+	assert(type(path) == "string", "hate.filesystem.getSize accepts one parameter of type 'string'")
+	local f = physfs.openRead(path)
+	return tonumber(physfs.fileLength(f))
+end
+
+function filesystem.getSaveDirectory()
+	return physfs.getWriteDir()
 end
 
 function filesystem.read(path, length)
