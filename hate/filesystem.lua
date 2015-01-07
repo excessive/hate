@@ -43,14 +43,27 @@ function filesystem.read(path, length)
 	end
 	assert(filesystem.exists(path), "The file \"" .. path .. "\") does not exist.")
 	local f = physfs.openRead(path)
-
 	local bytes = tonumber(physfs.fileLength(f))
 	local buf = ffi.new("unsigned char[?]", bytes)
 	local read = tonumber(physfs.read(f, buf, 1, bytes))
 
 	physfs.close(f)
 
-	return ffi.string(buf)
+	return ffi.string(buf, bytes)
+end
+
+function filesystem.append(path, data)
+	local f = physfs.openAppend(path)
+	local bytes = string.len(data)
+	physfs.write(f, data, 1, bytes)
+	physfs.close(f)
+end
+
+function filesystem.write(path, data)
+	local f = physfs.openWrite(path)
+	local bytes = string.len(data)
+	physfs.write(f, data, 1, bytes)
+	physfs.close(f)
 end
 
 function filesystem.exists(path)
