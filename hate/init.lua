@@ -173,6 +173,7 @@ function hate.init()
 	pcall(function() require "conf" end)
 
 	local config = {
+		name       = "hate",
 		window = {
 			width   = 854,
 			height  = 480,
@@ -198,7 +199,7 @@ function hate.init()
 
 	if config.filesystem then
 		hate.filesystem = require(current_folder .. "filesystem")
-		hate.filesystem.init(arg[0])
+		hate.filesystem.init(arg[0], hate.config.name)
 	end
 
 	if config.window then
@@ -218,7 +219,7 @@ function hate.init()
 			window_flags = bit.bor(window_flags, tonumber(sdl.RENDERER_PRESENTVSYNC))
 		end
 
-		local window = sdl.createWindow("Test",
+		local window = sdl.createWindow(hate.config.name,
 			sdl.WINDOWPOS_CENTERED, sdl.WINDOWPOS_CENTERED,
 			hate.config.window.width, hate.config.window.height,
 			window_flags

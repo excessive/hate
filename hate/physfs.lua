@@ -87,15 +87,21 @@ void PHYSFS_permitSymbolicLinks(int allow);
 local C = ffi.load("physfs")
 local physfs = { C = C }
 
-local function register(luafuncname, funcname)
+local function register(luafuncname, funcname, is_string)
 	local symexists, msg = pcall(function()
 		local sym = C[funcname]
 	end)
-	if symexists then
-		-- print(string.format("%s is a thing", funcname))
-		physfs[luafuncname] = C[funcname]
+	if not symexists then
+		error("Symbol " .. funcname .. " not found. Something is really, really wrong.")
+	end
+	-- kill the need to use ffi.string on several functions, for convenience.
+	if is_string then
+		physfs[luafuncname] = function(...)
+			local r = C[funcname](...)
+			return ffi.string(r)
+		end
 	else
-		-- print(string.format("%s is not a thing", funcname))
+		physfs[luafuncname] = C[funcname]
 	end
 end
 
@@ -119,19 +125,19 @@ register("mkdir", "PHYSFS_mkdir")
 register("mount", "PHYSFS_mount")
 
 register("enumerateFiles", "PHYSFS_enumerateFiles")
-register("getBaseDir", "PHYSFS_getBaseDir")
+register("getBaseDir", "PHYSFS_getBaseDir", true)
 
 register("getSearchPath", "PHYSFS_getSearchPath")
 register("addToSearchPath", "PHYSFS_addToSearchPath")
 register("removeFromSearchPath", "PHYSFS_removeFromSearchPath")
 
 register("getCdRomDirs", "PHYSFS_getCdRomDirs")
-register("getDirSeparator", "PHYSFS_getDirSeparator")
-register("getLastError", "PHYSFS_getLastError")
-register("getMountPoint", "PHYSFS_getMountPoint")
-register("getRealDir", "PHYSFS_getRealDir")
-register("getUserDir", "PHYSFS_getUserDir")
-register("getWriteDir", "PHYSFS_getWriteDir")
+register("getDirSeparator", "PHYSFS_getDirSeparator", true)
+register("getLastError", "PHYSFS_getLastError", true)
+register("getMountPoint", "PHYSFS_getMountPoint", true)
+register("getRealDir", "PHYSFS_getRealDir", true)
+register("getUserDir", "PHYSFS_getUserDir", true)
+register("getWriteDir", "PHYSFS_getWriteDir", true)
 
 register("supportedArchiveTypes", "PHYSFS_supportedArchiveTypes")
 

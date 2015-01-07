@@ -5,9 +5,52 @@ local physfs = require(current_folder .. "physfs")
 
 local filesystem = {}
 
-function filesystem.init(path)
+function filesystem.init(path, name)
 	assert(type(path) == "string", "hate.filesystem.init accepts one parameter of type 'string'")
-	return physfs.init(path) ~= 0
+	local status = physfs.init(path)
+
+	if status ~= 1 then
+		return status
+	end
+
+	status = physfs.mount("./", "", 0)
+
+	physfs.setSaneConfig("HATE", name, "zip", 0, 0);
+	--physfs.setWriteDir("");
+	print(physfs.getWriteDir())
+
+	return status
+end
+
+function filesystem.enumerate(path, callback)
+	local files = {}
+	local list, i = physfs.enumerateFiles("/"), 0
+	while list[i] ~= nil do
+		if type(callback) == "function" then
+			callback(ffi.string(list[i]))
+		else
+			table.insert(files, ffi.string(list[i]))
+		end
+		i = i + 1
+	end
+	return files
+end
+
+function filesystem.read(path, length)
+	assert(type(path) == "string", "hate.filesystem.read requires argument #1 to be of type 'string'")
+	if length ~= nil then
+		assert(type(length) == "number", "hate.filesystem.read requires argument #2 to be of type 'number'")
+	end
+	assert(filesystem.exists(path), "The file \"" .. path .. "\") does not exist.")
+	local f = physfs.openRead(path)
+
+	local bytes = tonumber(physfs.fileLength(f))
+	local buf = ffi.new("unsigned char[?]", bytes)
+	local read = tonumber(physfs.read(f, buf, 1, bytes))
+
+	physfs.close(f)
+
+	return ffi.string(buf)
 end
 
 function filesystem.exists(path)
