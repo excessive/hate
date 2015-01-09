@@ -68,6 +68,7 @@ function filesystem.getDirectoryItems(path, callback)
 		end
 		i = i + 1
 	end
+	physfs.freeList(list)
 	return files
 end
 
