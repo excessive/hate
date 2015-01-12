@@ -6,7 +6,26 @@ local opengl = require(current_folder .. "opengl")
 
 local flags
 
-local hate = {}
+local hate = {
+	_LICENSE = "HATE is distributed under the terms of the MIT license. See LICENSE.md.",
+	_URL = "https://github.com/shakesoda/hate",
+	_VERSION_MAJOR = 0,
+	_VERSION_MINOR = 0,
+	_VERSION_REVISION = 1,
+	_VERSION_CODENAME = "Tsubasa",
+	_DESCRIPTION = "It's not LÖVE."
+}
+
+hate._VERSION = string.format(
+	"%d.%d.%d",
+	hate._VERSION_MAJOR,
+	hate._VERSION_MINOR,
+	hate._VERSION_REVISION
+)
+
+-- Set a global so that libs like lcore can detect hate.
+-- (granted, most things will also have the "hate" global)
+FULL_OF_HATE = hate._VERSION
 
 local function handle_events()
 	local window = hate.state.window
@@ -90,6 +109,10 @@ local function handle_events()
 	end
 
 	print(string.format("Unhandled event type: %s", event.type))
+end
+
+function hate.getVersion()
+	return hate._VERSION_MAJOR, hate._VERSION_MINOR, hate._VERSION_REVISION, hate._VERSION_CODENAME, "HATE"
 end
 
 function hate.run()
@@ -195,7 +218,8 @@ function hate.init()
 			delay   = 0.001
 		},
 		filesystem = true,
-		timer      = true
+		timer      = true,
+		graphics   = true,
 	}
 
 	hate.conf(config)
