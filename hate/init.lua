@@ -93,6 +93,7 @@ local function handle_events()
 end
 
 function hate.run()
+	-- TODO: remove this.
 	local config = hate.config
 
 	--[[
@@ -106,40 +107,48 @@ function hate.run()
 
 	hate.load(arg)
 
-	if config.window then
-		local window = hate.state.window
-		local ctx = hate.state.gl_context
+	if hate.window then
+		-- We don't want the first frame's dt to include time taken by hate.load.
+		if hate.timer then hate.timer.step() end
 
-		local start = sdl.getTicks()
-		local previous = start / 1000
-		while hate.state.running do
-			hate.timer.step()
+		local dt = 0
 
-			hate.update(hate.timer.getDelta())
+		while true do
+			hate.event.pump()
+			if not hate.state.running then
+				break
+			end
 
-			if config.window then
+			-- Update dt, as we'll be passing it to update
+			if hate.timer then
+				hate.timer.step()
+				dt = hate.timer.getDelta()
+			end
+
+			-- Call update and draw
+			if hate.update then hate.update(dt) end -- will pass 0 if hate.timer is disabled
+
+			if hate.window and hate.graphics --[[and hate.window.isCreated()]] then
 				hate.graphics.clear()
 				hate.graphics.origin()
 				if hate.draw then hate.draw() end
 				hate.graphics.present()
 			end
 
-			if config.timer then
-				if config.window and config.window.delay then
+			if hate.timer then
+				if hate.window and config.window.delay then
 					if config.window.delay >= 0.001 then
 						hate.timer.sleep(config.window.delay)
 					end
-				elseif config.window then
+				elseif hate.window then
 					hate.timer.sleep(0.001)
 				end
 			end
-
-			hate.event.pump()
 		end
 
-		sdl.GL_MakeCurrent(window, nil)
-		sdl.GL_DeleteContext(ctx)
-		sdl.destroyWindow(window)
+		sdl.GL_MakeCurrent(hate.state.window, nil)
+		sdl.GL_DeleteContext(hate.state.gl_context)
+		sdl.destroyWindow(hate.state.window)
 	end
 
 	hate.quit()
@@ -257,6 +266,9 @@ function hate.init()
 
 		hate.graphics = require(current_folder .. "graphics")
 		hate.graphics._state = hate.state
+
+		-- TODO
+		hate.window = {}
 	end
 
 	local main, msg = pcall(function() require "main" end)

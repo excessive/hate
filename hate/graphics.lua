@@ -22,6 +22,7 @@ function graphics.setBackgroundColor(r, g, b, a)
 	if type(r) == "table" then
 		r, g, b, a = r[1], r[2], r[3], r[4] or 255
 	end
+	graphics._background_color = { r, g, b, a }
 	gl.ClearColor(r, g, b, a)
 end
 
