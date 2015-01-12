@@ -95,6 +95,15 @@ end
 function hate.run()
 	local config = hate.config
 
+	--[[
+	if hate.math then
+		hate.math.setRandomSeed(os.time())
+
+		-- first few randoms aren't good, throw them out.
+		for i=1,3 do hate.math.random() end
+	end
+	--]]
+
 	hate.load(arg)
 
 	if config.window then
@@ -109,12 +118,10 @@ function hate.run()
 			hate.update(hate.timer.getDelta())
 
 			if config.window then
-				gl.ClearColor(255, 0, 255, 255)
-				gl.Clear(bit.bor(tonumber(GL.COLOR_BUFFER_BIT), tonumber(GL.DEPTH_BUFFER_BIT)))
-
-				hate.draw()
-
-				sdl.GL_SwapWindow(window)
+				hate.graphics.clear()
+				hate.graphics.origin()
+				if hate.draw then hate.draw() end
+				hate.graphics.present()
 			end
 
 			if config.timer then
@@ -126,8 +133,6 @@ function hate.run()
 					hate.timer.sleep(0.001)
 				end
 			end
-
-			-- print(hate.timer.getFPS())
 
 			hate.event.pump()
 		end
@@ -249,6 +254,9 @@ function hate.init()
 
 		hate.state.window = window
 		hate.state.gl_context = ctx
+
+		hate.graphics = require(current_folder .. "graphics")
+		hate.graphics._state = hate.state
 	end
 
 	local main, msg = pcall(function() require "main" end)
