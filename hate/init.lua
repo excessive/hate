@@ -8,7 +8,7 @@ local flags
 
 local hate = {
 	_LICENSE = "HATE is distributed under the terms of the MIT license. See LICENSE.md.",
-	_URL = "https://github.com/shakesoda/hate",
+	_URL = "https://github.com/excessive/hate",
 	_VERSION_MAJOR = 0,
 	_VERSION_MINOR = 0,
 	_VERSION_REVISION = 1,
