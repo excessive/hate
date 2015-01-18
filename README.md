@@ -21,3 +21,5 @@ No need for such things. Really, please don't, it doesn't work like that.
 # Usage
 
 Drop the hate folder and init.lua into your LÖVE project and run `luajit init.lua`
+
+This is completely untested on Windows, but should technically work. So it's probably broken.
