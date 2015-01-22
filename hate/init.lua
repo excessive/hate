@@ -207,7 +207,7 @@ function hate.init()
 		hate.state.running = false
 	end
 
-	pcall(function() require "conf" end)
+	pcall(require, "conf")
 
 	local config = {
 		name       = "hate",
