@@ -1,0 +1,7 @@
+{
+	"cmd": "luajit",
+	"args": [ "init.lua" ],
+	"sh": false,
+	"cwd": "{PROJECT_PATH}",
+	"env": {}
+}
