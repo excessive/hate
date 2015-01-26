@@ -8,18 +8,24 @@ It's not nearly ready for use by anyone - so either help me implement more APIs 
 
 # Dependencies
 
-* physfs
-* sdl2
-* openal
-* freetype
-* luajit 2.0+
+* PhysFS 2.0+
+* SDL 2.0.3+
+* OpenAL
+* Freetype
+* LuaJIT 2.0+
+
+OpenGL 2.1+ or ES 2.0+ support is *required* to run HATE.
+
+For Windows users, all dependencies can be downloaded from [releases](https://github.com/excessive/hate/releases).
 
 # Installation
 
-No need for such things. Really, please don't, it doesn't work like that.
+One does not simply install HATE. Really, please don't, it doesn't work like that.
 
 # Usage
 
 Drop the hate folder and init.lua into your LÖVE project and run `luajit init.lua`
 
-This is completely untested on Windows, but should technically work. So it's probably broken.
+# Contributing
+
+Send pull requests my way, file bugs, and test everything you can! I especially appreciate contributions for audio, threading and tests.
