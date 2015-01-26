@@ -248,6 +248,7 @@ function hate.init()
 	end
 
 	if config.window then
+		-- FIXME
 		if flags.gl3 then
 			sdl.GL_SetAttribute(sdl.GL_CONTEXT_MAJOR_VERSION, 3)
 			sdl.GL_SetAttribute(sdl.GL_CONTEXT_MINOR_VERSION, 3)
@@ -287,6 +288,45 @@ function hate.init()
 
 		local version = ffi.string(gl.GetString(GL.VERSION))
 		local renderer = ffi.string(gl.GetString(GL.RENDERER))
+
+		if false then
+			local gl_debug_source_string = {
+				[GL.DEBUG_SOURCE_API_ARB] = "API",
+				[GL.DEBUG_SOURCE_WINDOW_SYSTEM_ARB] = "WINDOW_SYSTEM",
+				[GL.DEBUG_SOURCE_SHADER_COMPILER_ARB] = "SHADER_COMPILER",
+				[GL.DEBUG_SOURCE_THIRD_PARTY_ARB] = "THIRD_PARTY",
+				[GL.DEBUG_SOURCE_APPLICATION_ARB] = "APPLICATION",
+				[GL.DEBUG_SOURCE_OTHER_ARB] = "OTHER"
+			}
+
+			local gl_debug_type_string = {
+				[GL.DEBUG_TYPE_ERROR_ARB] = "ERROR",
+				[GL.DEBUG_TYPE_DEPRECATED_BEHAVIOR_ARB] = "DEPRECATED_BEHAVIOR",
+				[GL.DEBUG_TYPE_UNDEFINED_BEHAVIOR_ARB] = "UNDEFINED_BEHAVIOR",
+				[GL.DEBUG_TYPE_PORTABILITY_ARB] = "PORTABILITY",
+				[GL.DEBUG_TYPE_PERFORMANCE_ARB] = "PERFORMANCE",
+				[GL.DEBUG_TYPE_OTHER_ARB] = "OTHER"
+			}
+
+			local gl_debug_severity_string = {
+				[GL.DEBUG_SEVERITY_HIGH_ARB] = "HIGH",
+				[GL.DEBUG_SEVERITY_MEDIUM_ARB] = "MEDIUM",
+				[GL.DEBUG_SEVERITY_LOW_ARB] = "LOW"
+			}
+
+			if (gl.DebugMessageCallbackARB) then
+				local debug_data = ffi.new("void *")
+
+				gl.DebugMessageCallbackARB(function(source, type, id, severity, length, message, userParam)
+					print(string.format("GL DEBUG source: %s type: %s id: %s severity: %s message: %q",
+					gl_debug_source_string[source],
+					gl_debug_type_string[type],
+					tonumber(id),
+					gl_debug_severity_string[severity],
+					ffi.string(message)))
+				end, debug_data)
+			end
+		end
 
 		if flags.gl_debug then
 			print(string.format("OpenGL %s on %s", version, renderer))
