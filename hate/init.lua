@@ -219,7 +219,14 @@ function hate.init()
 		},
 		filesystem = true,
 		timer      = true,
-		graphics   = true,
+		graphics   = {
+			-- TODO: debug context + multiple attempts at creating contexts
+			debug   = true,
+			gl      = {
+				{ 3, 3 },
+				{ 2, 1 }
+			}
+		}
 	}
 
 	hate.conf(config)
