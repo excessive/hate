@@ -84,7 +84,7 @@ void PHYSFS_getLinkedVersion(PHYSFS_Version *ver);
 void PHYSFS_permitSymbolicLinks(int allow);
 ]])
 
-local C = ffi.load("physfs")
+local C = ffi.load(ffi.os == "Windows" and "bin/physfs" or "physfs")
 local physfs = { C = C }
 
 local function register(luafuncname, funcname, is_string)
@@ -160,4 +160,3 @@ register("getLinkedVersion", "PHYSFS_getLinkedVersion")
 register("permitSymbolicLinks", "PHYSFS_permitSymbolicLinks")
 
 return physfs
-

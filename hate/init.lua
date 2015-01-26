@@ -87,7 +87,7 @@ local function handle_events()
 			hate.keyreleased(key)
 		end,
 		[sdl.TEXTEDITING] = function(event)
-			local e = e.edit
+			local e = event.edit
 			-- TODO
 		end,
 		[sdl.MOUSEMOTION] = function(event) end,
