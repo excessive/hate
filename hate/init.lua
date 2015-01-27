@@ -254,6 +254,7 @@ function hate.init()
 			sdl.GL_SetAttribute(sdl.GL_CONTEXT_MINOR_VERSION, 3)
 			sdl.GL_SetAttribute(sdl.GL_CONTEXT_PROFILE_MASK, sdl.GL_CONTEXT_PROFILE_CORE)
 		end
+		sdl.GL_SetAttribute(sdl.GL_CONTEXT_FLAGS, sdl.GL_CONTEXT_DEBUG_FLAG)
 
 		local window_flags = tonumber(sdl.WINDOW_OPENGL)
 
@@ -289,7 +290,7 @@ function hate.init()
 		local version = ffi.string(gl.GetString(GL.VERSION))
 		local renderer = ffi.string(gl.GetString(GL.RENDERER))
 
-		if false then
+		if true then
 			local gl_debug_source_string = {
 				[GL.DEBUG_SOURCE_API_ARB] = "API",
 				[GL.DEBUG_SOURCE_WINDOW_SYSTEM_ARB] = "WINDOW_SYSTEM",

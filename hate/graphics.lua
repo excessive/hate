@@ -1,7 +1,48 @@
 local current_folder = (...):gsub('%.[^%.]+$', '') .. "."
 local sdl = require(current_folder .. "sdl2")
+local ffi = require "ffi"
 
 local graphics = {}
+
+local function validate_shader(shader)
+	local int = ffi.new("GLint[1]")
+	gl.glGetShaderiv(shader, gl.GL_INFO_LOG_LENGTH, int)
+	local length = int[0]
+	if length <= 0 then
+		return
+	end
+	gl.glGetShaderiv(shader, gl.GL_COMPILE_STATUS, int)
+	local success = int[0]
+	if success == gl.GL_TRUE then
+		return
+	end
+	local buffer = ffi.new("char[?]", length)
+	gl.glGetShaderInfoLog(shader, length, int, buffer)
+	error(ffi.string(buffer))
+end
+
+local function load_shader(src, type)
+	local shader = gl.glCreateShader(type)
+	if shader == 0 then
+		error("glGetError: " .. tonumber(gl.glGetError()))
+	end
+	local src = ffi.new("char[?]", #src, src)
+	local srcs = ffi.new("const char*[1]", src)
+	gl.glShaderSource(shader, 1, srcs, nil)
+	gl.glCompileShader(shader)
+	validate_shader(shader)
+	return shader
+end
+
+-- local vs = load_shader(vs_src, gl.GL_VERTEX_SHADER)
+-- local fs = load_shader(fs_src, gl.GL_FRAGMENT_SHADER)
+--
+-- local prog = gl.glCreateProgram()
+
+-- gl.glAttachShader(prog, vs)
+-- gl.glAttachShader(prog, fs)
+-- gl.glLinkProgram(prog)
+-- gl.glUseProgram(prog)
 
 function graphics.clear(color, depth)
 	local mask = 0
@@ -75,8 +116,79 @@ function graphics.setInvertedStencil(stencilfn)
 
 end
 
+local function elements_for_mode(buffer_type)
+	local t = {
+		[GL.TRIANGLES] = 3,
+		[GL.TRIANGLE_STRIP] = 1,
+		[GL.LINES] = 2,
+		[GL.POINTS] = 1
+	}
+	assert(t[buffer_type])
+	return t[buffer_type]
+end
+
+local function submit_buffer(buffer_type, mode, data, count)
+	local handle = ffi.new("GLuint[1]")
+	-- ffi.gc(handle, function(h) gl.DeleteBuffers(1, h) end)
+	gl.GenBuffers(1, handle)
+	gl.BindBuffer(buffer_type, handle[0])
+	gl.BufferData(buffer_type, ffi.sizeof(data), data, GL.STATIC_DRAW)
+	return {
+		buffer_type = buffer_type,
+		count  = count,
+		mode   = mode,
+		handle = handle
+	}
+end
+
+function graphics.circle(mode, x, y, radius, segments)
+	segments = segments or 32
+	local vertices = {}
+	local count = (segments+2) * 2
+	local data = ffi.new("float[?]", count)
+
+	-- center of fan
+	data[0] = x
+	data[1] = y
+
+	for i=0, segments do
+		local angle = (i / segments) * math.pi * 2
+		local px = x + math.cos(angle) * radius
+		local py = y + math.sin(angle) * radius
+
+		data[(i*2)+2] = px
+		data[(i*2)+3] = py
+	end
+
+	local buf = submit_buffer(GL.ARRAY_BUFFER, GL.TRIANGLE_STRIP, data, count)
+	local vao = ffi.new("GLuint[1]")
+	-- gl.GenVertexArrays(1, vao)
+	-- gl.BindVertexArray(vao[0])
+	gl.BindBuffer(buf.buffer_type, buf.handle[0])
+	-- gl.EnableVertexAttribArray(0)
+	gl.VertexAttribPointer(0, ffi.sizeof("float") * 2, GL.FLOAT, GL.FALSE, 0, nil)--ffi.cast("void*", 0))
+	gl.DrawArrays(buf.mode, 0, buf.count)
+	-- gl.DisableVertexAttribArray(0)
+	gl.DeleteBuffers(1, buf.handle)
+	-- gl.DeleteVertexArrays(1, vao)
+end
+
 function graphics.present()
 	sdl.GL_SwapWindow(graphics._state.window)
+end
+
+function graphics.newShader(pixelcode, vertexcode)
+	-- TODO
+end
+
+function graphics.setShader(shader)
+	if shader == nil then
+		shader = graphics._internal_shader
+	end
+	if shader ~= graphics._active_shader then
+		graphics._active_shader = shader
+		gl.UseProgram(shader._program)
+	end
 end
 
 function graphics.origin()
