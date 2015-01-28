@@ -10,9 +10,9 @@ This is a pretty sad state of affairs! Please help!
    * love.mousepressed & love.mousereleased
       * stubbed, need to fire events
    * love.resize
+      * should be easy-peasy
    * love.run
       * hate init needs some restructuring
-   * love.textinput
    * love.threaderror
       * depends on hate.thread
    * love.visible
@@ -29,29 +29,39 @@ This is a pretty sad state of affairs! Please help!
 
 ## Not yet started
 
-* love.audio *not yet started*
-* love.font *not yet started*
-* love.image *not yet started*
-* love.joystick *not yet started*
-* love.keyboard *not yet started*
-* love.math *not yet started*
-* love.mouse *not yet started*
-* love.physics *not yet started*
-* love.sound *not yet started*
-* love.thread *not yet started*
+* love.audio & love.sound (dependent)
+* love.font
+  * image fonts will definitely be supported first, no need for FreeType for those.
+* love.image
+* love.keyboard
+* love.joystick
+* love.mouse
+* love.math
+* love.physics
+* love.thread
 
 ## Started
 
 * love.keypressed & love.keyreleased
-  * Missing many key codes.
-* love.errhand **started**
+  * Missing many key codes, otherwise done.
+* love.errhand
   * Missing too many features to implement 100%, but the callback is done.
-* love.event **started**
-* love.filesystem **started**
-* love.graphics **started**
-* love.window **started**
+* love.event
+  * It's only the most trivial stuff so far.
+* love.filesystem
+  * Some issues with base path, missing functions
+* love.graphics
+  * Barely functional. Needs tons of work.
+* love.window
+  * Half done or so.
+* love.textinput
+  * I think I just need to make this emit, the handler seems done.
 
 ## Complete
 
-* love.system **complete**
-* love.timer **complete**
+* love.system
+* love.timer
+* love.draw
+* love.update
+* love.load
+* love.quit
