@@ -326,6 +326,9 @@ function hate.init()
 				local debug_data = ffi.new("void *")
 
 				gl.DebugMessageCallbackARB(function(source, type, id, severity, length, message, userParam)
+					if type == GL.DEBUG_TYPE_OTHER_ARB then
+						return
+					end
 					print(string.format("GL DEBUG source: %s type: %s id: %s severity: %s message: %q",
 					gl_debug_source_string[source],
 					gl_debug_type_string[type],
