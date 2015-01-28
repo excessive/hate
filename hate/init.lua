@@ -323,8 +323,6 @@ function hate.init()
 					[GL.DEBUG_SEVERITY_MEDIUM_ARB] = "MEDIUM",
 					[GL.DEBUG_SEVERITY_LOW_ARB] = "LOW"
 				}
-				local debug_data = ffi.new("void *")
-
 				gl.DebugMessageCallbackARB(function(source, type, id, severity, length, message, userParam)
 					if type == GL.DEBUG_TYPE_OTHER_ARB then
 						return
@@ -335,7 +333,7 @@ function hate.init()
 					tonumber(id),
 					gl_debug_severity_string[severity],
 					ffi.string(message)))
-				end, debug_data)
+				end, nil)
 			end
 		end
 
