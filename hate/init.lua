@@ -357,6 +357,8 @@ function hate.init()
 
 		hate.window = require(current_folder .. "window")
 		hate.window._state = hate.state
+
+		hate.system = require(current_folder .. "system")
 	end
 
 	local ok, msg = pcall(require, "main")
