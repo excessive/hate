@@ -29,3 +29,5 @@ Drop the hate folder and init.lua into your LÖVE project and run `luajit init.l
 # Contributing
 
 Send pull requests my way, file bugs, and test everything you can! I especially appreciate contributions for audio, threading and tests.
+
+See STATUS.md for APIs in dire need of implementation.
