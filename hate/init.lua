@@ -214,11 +214,7 @@ function hate.init()
 	hate.filesystem.init(arg[0], "HATE")
 
 	if hate.filesystem.exists("conf.lua") then
-		local ok, msg = pcall(require, "conf")
-		if not ok then
-			-- TODO: debug traceback
-			print(msg)
-		end
+		xpcall(require, hate.errhand, "conf")
 	end
 	hate.filesystem.deinit()
 
