@@ -64,7 +64,7 @@ function graphics.setBackgroundColor(r, g, b, a)
 		r, g, b, a = r[1], r[2], r[3], r[4] or 255
 	end
 	graphics._background_color = { r, g, b, a }
-	gl.ClearColor(r, g, b, a)
+	gl.ClearColor(r / 255, g / 255, b / 255, a / 255)
 end
 
 function graphics.getColor()
@@ -129,8 +129,8 @@ end
 
 local function submit_buffer(buffer_type, mode, data, count)
 	local handle = ffi.new("GLuint[1]")
-	-- ffi.gc(handle, function(h) gl.DeleteBuffers(1, h) end)
 	gl.GenBuffers(1, handle)
+	ffi.gc(handle, function(h) gl.DeleteBuffers(1, h) end)
 	gl.BindBuffer(buffer_type, handle[0])
 	gl.BufferData(buffer_type, ffi.sizeof(data), data, GL.STATIC_DRAW)
 	return {
@@ -160,16 +160,15 @@ function graphics.circle(mode, x, y, radius, segments)
 		data[(i*2)+3] = py
 	end
 
-	local buf = submit_buffer(GL.ARRAY_BUFFER, GL.TRIANGLE_STRIP, data, count)
+	local buf = submit_buffer(GL.ARRAY_BUFFER, GL.TRIANGLE_FAN, data, count)
 	local vao = ffi.new("GLuint[1]")
+	assert(gl.GetError() == GL.NO_ERROR)
 	-- gl.GenVertexArrays(1, vao)
 	-- gl.BindVertexArray(vao[0])
 	gl.BindBuffer(buf.buffer_type, buf.handle[0])
-	-- gl.EnableVertexAttribArray(0)
-	gl.VertexAttribPointer(0, ffi.sizeof("float") * 2, GL.FLOAT, GL.FALSE, 0, nil)--ffi.cast("void*", 0))
+	gl.EnableVertexAttribArray(0)
+	gl.VertexAttribPointer(0, 2, GL.FLOAT, GL.FALSE, 0, ffi.cast("void*", 0))
 	gl.DrawArrays(buf.mode, 0, buf.count)
-	-- gl.DisableVertexAttribArray(0)
-	gl.DeleteBuffers(1, buf.handle)
 	-- gl.DeleteVertexArrays(1, vao)
 end
 
