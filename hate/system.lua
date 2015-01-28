@@ -37,35 +37,27 @@ function system.getProcessorCount()
    return tonumber(sdl.getCPUCount())
 end
 
--- TODO: fix this thing
--- YOU THOUGHT YOU COULD OPEN A URL, BUT IT WAS ME, YOUR SAVE FOLDER!
-function system.openURL(todo)
-   url = url or ""
-
-   local osname = love.system.getOS()
-   local path = love.filesystem.getSaveDirectory() .. "/" .. url
-   local cmdstr
-
-   if osname == "Windows" then
-      cmdstr = "Explorer %s"
-      url = url:gsub("/", "\\")
-      -- HATE doesn't support fusing... yet.
-      -- if love.filesystem.isFused() then
-      --    path = "%appdata%\\"
-      -- else
-      path = "%appdata%\\HATE\\"
-      -- end
-      path = path..love.filesystem.getIdentity() .. "\\" .. url
-   elseif osname == "OS X" then
-      cmdstr = "open -R \"%s\""
-   elseif osname == "Linux" then
-      cmdstr = "xdg-open \"%s\""
+function system.openURL(path)
+   local osname = hate.system.getOS()
+   local cmds = {
+      ["Windows"] = "start",
+      ["OS X"]    = "open",
+      ["Linux"]   = "xdg-open"
+   }
+   if path:sub(1, 7) == "file://" then
+      cmds["Windows"] = "explorer"
+      -- Windows-ify
+      if osname == "Windows" then
+         path = path:sub(8):gsub("/", "\\")
+      end
    end
-
-   if cmdstr then
-      os.execute(cmdstr:format(path))
+   if not cmds[osname] then
+      print("What /are/ birds?")
+      return
    end
+   local cmdstr = cmds[osname] .. " \"%s\""
+   -- print(cmdstr, path)
+   os.execute(cmdstr:format(path))
 end
-
 
 return system

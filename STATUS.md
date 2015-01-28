@@ -10,7 +10,7 @@ This is a pretty sad state of affairs! Please help!
    * love.keypressed & love.keyreleased
       * Implemented, but missing many key codes.
    * love.mousefocus
-   * love.mousepressed * love.mousereleased
+   * love.mousepressed & love.mousereleased
       * stubbed, need to fire events
    * love.resize
    * love.run
@@ -29,11 +29,10 @@ This is a pretty sad state of affairs! Please help!
       * love.joystickpressed
       * love.joystickreleased
       * love.joystickremoved
+
+## Not yet started
 * love.audio *not yet started*
-* love.event *not yet started*
-* love.filesystem **started**
 * love.font *not yet started*
-* love.graphics **started**
 * love.image *not yet started*
 * love.joystick *not yet started*
 * love.keyboard *not yet started*
@@ -41,8 +40,16 @@ This is a pretty sad state of affairs! Please help!
 * love.mouse *not yet started*
 * love.physics *not yet started*
 * love.sound *not yet started*
-* love.system **started**
-   * missing love.system.openURL() (dummied to open save dir)
 * love.thread *not yet started*
-* love.timer **complete**
+
+## Started
+
+* love.event **started**
+* love.filesystem **started**
+* love.graphics **started**
 * love.window **started**
+
+## Complete
+
+* love.system **complete**
+* love.timer **complete**
