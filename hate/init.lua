@@ -230,16 +230,15 @@ function hate.init()
 			delay   = 0.001,
 			fsaa    = 0, -- for love <= 0.9.1 compatibility
 			msaa    = 0,
-		},
-		timer      = true,
-		graphics   = {
 			-- TODO: debug context + multiple attempts at creating contexts
 			debug   = true,
 			gl      = {
 				{ 3, 3 },
 				{ 2, 1 }
 			}
-		}
+		},
+		timer      = true,
+		graphics   = true
 	}
 
 	hate.conf(config)
@@ -258,12 +257,14 @@ function hate.init()
 
 	if config.window then
 		-- FIXME
-		if flags.gl3 then
-			sdl.GL_SetAttribute(sdl.GL_CONTEXT_MAJOR_VERSION, 3)
-			sdl.GL_SetAttribute(sdl.GL_CONTEXT_MINOR_VERSION, 3)
-			sdl.GL_SetAttribute(sdl.GL_CONTEXT_PROFILE_MASK, sdl.GL_CONTEXT_PROFILE_CORE)
+		-- if flags.gl3 then
+		-- 	sdl.GL_SetAttribute(sdl.GL_CONTEXT_MAJOR_VERSION, 3)
+		-- 	sdl.GL_SetAttribute(sdl.GL_CONTEXT_MINOR_VERSION, 3)
+		-- 	sdl.GL_SetAttribute(sdl.GL_CONTEXT_PROFILE_MASK, sdl.GL_CONTEXT_PROFILE_CORE)
+		-- end
+		if config.window.debug then
+			sdl.GL_SetAttribute(sdl.GL_CONTEXT_FLAGS, sdl.GL_CONTEXT_DEBUG_FLAG)
 		end
-		sdl.GL_SetAttribute(sdl.GL_CONTEXT_FLAGS, sdl.GL_CONTEXT_DEBUG_FLAG)
 		sdl.GL_SetAttribute(sdl.GL_MULTISAMPLESAMPLES, math.max(config.window.fsaa or 0, config.window.msaa or 0))
 
 		local window_flags = tonumber(sdl.WINDOW_OPENGL)
@@ -300,7 +301,7 @@ function hate.init()
 		local version = ffi.string(gl.GetString(GL.VERSION))
 		local renderer = ffi.string(gl.GetString(GL.RENDERER))
 
-		if true then
+		if config.window.debug then
 			if gl.DebugMessageCallbackARB then
 				local gl_debug_source_string = {
 					[GL.DEBUG_SOURCE_API_ARB] = "API",
