@@ -279,7 +279,7 @@ function hate.init()
 		end
 
 		local window = sdl.createWindow(hate.config.name,
-			sdl.WINDOWPOS_CENTERED, sdl.WINDOWPOS_CENTERED,
+			sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED,
 			hate.config.window.width, hate.config.window.height,
 			window_flags
 		)
