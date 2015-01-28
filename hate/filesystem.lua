@@ -40,6 +40,10 @@ function filesystem.init(path, name)
 	return status ~= 0
 end
 
+function filesystem.deinit()
+	physfs.deinit()
+end
+
 function filesystem.mount(archive, mountpoint, append)
 	local status = physfs.mount(filesystem.getSaveDirectory() .. "/" .. archive, mountpoint, append and append or 0)
 	return status ~= 0
