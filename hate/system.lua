@@ -40,7 +40,7 @@ end
 function system.openURL(path)
    local osname = hate.system.getOS()
    local cmds = {
-      ["Windows"] = "start",
+      ["Windows"] = "start \"\"",
       ["OS X"]    = "open",
       ["Linux"]   = "xdg-open"
    }
