@@ -361,15 +361,100 @@ function hate.init()
 		hate.system = require(current_folder .. "system")
 	end
 
-	local ok, msg = pcall(require, "main")
-
-	if not ok then
-		print(msg)
-	end
+	xpcall(require, hate.errhand, "main")
 
 	hate.run()
 
 	return 0
+end
+
+function hate.errhand(msg)
+	msg = tostring(msg)
+
+	local function error_printer(msg, layer)
+		print((debug.traceback("Error: " .. tostring(msg), 1+(layer or 1)):gsub("\n[^\n]+$", "")))
+	end
+
+	error_printer(msg, 2)
+
+	-- HATE isn't ready for this.
+	if false then
+		return
+	end
+
+	if not hate.window or not hate.graphics or not hate.event then
+		return
+	end
+
+	if not hate.graphics.isCreated() or not hate.window.isCreated() then
+		if not pcall(hate.window.setMode, 800, 600) then
+			return
+		end
+	end
+
+	-- Reset state.
+	if hate.mouse then
+		hate.mouse.setVisible(true)
+		hate.mouse.setGrabbed(false)
+	end
+	if hate.joystick then
+		for i,v in ipairs(hate.joystick.getJoysticks()) do
+			v:setVibration() -- Stop all joystick vibrations.
+		end
+	end
+	if hate.audio then hate.audio.stop() end
+	hate.graphics.reset()
+	hate.graphics.setBackgroundColor(89, 157, 220)
+	local font = hate.graphics.setNewFont(14)
+
+	hate.graphics.setColor(255, 255, 255, 255)
+
+	local trace = debug.traceback()
+
+	hate.graphics.clear()
+	hate.graphics.origin()
+
+	local err = {}
+
+	table.insert(err, "Error\n")
+	table.insert(err, msg.."\n\n")
+
+	for l in string.gmatch(trace, "(.-)\n") do
+		if not string.match(l, "boot.lua") then
+			l = string.gsub(l, "stack traceback:", "Traceback\n")
+			table.insert(err, l)
+		end
+	end
+
+	local p = table.concat(err, "\n")
+
+	p = string.gsub(p, "\t", "")
+	p = string.gsub(p, "%[string \"(.-)\"%]", "%1")
+
+	local function draw()
+		hate.graphics.clear()
+		hate.graphics.printf(p, 70, 70, hate.graphics.getWidth() - 70)
+		hate.graphics.present()
+	end
+
+	while true do
+		hate.event.pump()
+
+		for e, a, b, c in hate.event.poll() do
+			if e == "quit" then
+				return
+			end
+			if e == "keypressed" and a == "escape" then
+				return
+			end
+		end
+
+		draw()
+
+		if hate.timer then
+			hate.timer.sleep(0.1)
+		end
+	end
 end
 
 return hate

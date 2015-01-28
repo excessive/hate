@@ -5,10 +5,7 @@ This is a pretty sad state of affairs! Please help!
 * missing luasocket and lua-enet!
 * love
    * missing some callbacks
-   * love.errhand
    * love.focus
-   * love.keypressed & love.keyreleased
-      * Implemented, but missing many key codes.
    * love.mousefocus
    * love.mousepressed & love.mousereleased
       * stubbed, need to fire events
@@ -31,6 +28,7 @@ This is a pretty sad state of affairs! Please help!
       * love.joystickremoved
 
 ## Not yet started
+
 * love.audio *not yet started*
 * love.font *not yet started*
 * love.image *not yet started*
@@ -44,6 +42,10 @@ This is a pretty sad state of affairs! Please help!
 
 ## Started
 
+* love.keypressed & love.keyreleased
+  * Missing many key codes.
+* love.errhand **started**
+  * Missing too many features to implement 100%, but the callback is done.
 * love.event **started**
 * love.filesystem **started**
 * love.graphics **started**
