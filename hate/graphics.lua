@@ -81,15 +81,18 @@ function graphics.setColor(r, g, b, a)
 end
 
 function graphics.getDimensions()
-	return graphics.getWidth(), graphics.getHeight()
+	local w, h = ffi.new("int[1]"), ffi.new("int[1]")
+	sdl.GL_GetDrawableSize(graphics._state.window, w, h)
+
+	return tonumber(w[0]), tonumber(h[0])
 end
 
 function graphics.getWidth()
-	-- TODO
+	return select(1, graphics.getDimensions())
 end
 
 function graphics.getHeight()
-	-- TODO
+	return select(2, graphics.getDimensions())
 end
 
 function graphics.isWireframe()

@@ -901,6 +901,8 @@ SDL_GLContext SDL_GL_CreateContext(SDL_Window *
                                                            window);
 int SDL_GL_MakeCurrent(SDL_Window * window,
                                                SDL_GLContext context);
+void SDL_GL_GetDrawableSize(SDL_Window *window, int *w, int *h);
+
 SDL_Window* SDL_GL_GetCurrentWindow(void);
 SDL_GLContext SDL_GL_GetCurrentContext(void);
 int SDL_GL_SetSwapInterval(int interval);

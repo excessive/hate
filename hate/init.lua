@@ -181,7 +181,8 @@ end
 
 function hate.init()
 	flags = {
-		gl3 = false
+		gl3 = false,
+		show_sdl_version = false
 	}
 
 	for _, v in ipairs(arg) do
@@ -338,6 +339,12 @@ function hate.init()
 			end
 		end
 
+		if flags.show_sdl_version then
+			local v = ffi.new("SDL_version[1]")
+			sdl.getVersion(v)
+			print(string.format("SDL %d.%d.%d", v[0].major, v[0].minor, v[0].patch))
+		end
+
 		if flags.gl_debug then
 			print(string.format("OpenGL %s on %s", version, renderer))
 		end
@@ -348,13 +355,13 @@ function hate.init()
 		hate.graphics = require(current_folder .. "graphics")
 		hate.graphics._state = hate.state
 
-		-- TODO
-		hate.window = {}
+		hate.window = require(current_folder .. "window")
+		hate.window._state = hate.state
 	end
 
-	local main, msg = pcall(function() require "main" end)
+	local ok, msg = pcall(require, "main")
 
-	if msg then
+	if not ok then
 		print(msg)
 	end
 
