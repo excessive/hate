@@ -167,6 +167,8 @@ function hate.run()
 					hate.timer.sleep(0.001)
 				end
 			end
+
+			collectgarbage()
 		end
 
 		sdl.GL_MakeCurrent(hate.state.window, nil)
@@ -207,7 +209,17 @@ function hate.init()
 		hate.state.running = false
 	end
 
-	pcall(require, "conf")
+	hate.filesystem = require(current_folder .. "filesystem")
+	hate.filesystem.init(arg[0], "HATE")
+
+	if hate.filesystem.exists("conf.lua") then
+		local ok, msg = pcall(require, "conf")
+		if not ok then
+			-- TODO: debug traceback
+			print(msg)
+		end
+	end
+	hate.filesystem.deinit()
 
 	local config = {
 		name       = "hate",
@@ -217,7 +229,6 @@ function hate.init()
 			vsync   = true,
 			delay   = 0.001
 		},
-		filesystem = true,
 		timer      = true,
 		graphics   = {
 			-- TODO: debug context + multiple attempts at creating contexts
@@ -231,6 +242,7 @@ function hate.init()
 
 	hate.conf(config)
 	hate.config = config
+	hate.filesystem.init(arg[0], hate.config.name)
 
 	hate.state = {}
 	hate.state.running = true
@@ -240,11 +252,6 @@ function hate.init()
 	if config.timer then
 		hate.timer = require(current_folder .. "timer")
 		hate.timer.init()
-	end
-
-	if config.filesystem then
-		hate.filesystem = require(current_folder .. "filesystem")
-		hate.filesystem.init(arg[0], hate.config.name)
 	end
 
 	if config.window then
@@ -291,31 +298,28 @@ function hate.init()
 		local renderer = ffi.string(gl.GetString(GL.RENDERER))
 
 		if true then
-			local gl_debug_source_string = {
-				[GL.DEBUG_SOURCE_API_ARB] = "API",
-				[GL.DEBUG_SOURCE_WINDOW_SYSTEM_ARB] = "WINDOW_SYSTEM",
-				[GL.DEBUG_SOURCE_SHADER_COMPILER_ARB] = "SHADER_COMPILER",
-				[GL.DEBUG_SOURCE_THIRD_PARTY_ARB] = "THIRD_PARTY",
-				[GL.DEBUG_SOURCE_APPLICATION_ARB] = "APPLICATION",
-				[GL.DEBUG_SOURCE_OTHER_ARB] = "OTHER"
-			}
-
-			local gl_debug_type_string = {
-				[GL.DEBUG_TYPE_ERROR_ARB] = "ERROR",
-				[GL.DEBUG_TYPE_DEPRECATED_BEHAVIOR_ARB] = "DEPRECATED_BEHAVIOR",
-				[GL.DEBUG_TYPE_UNDEFINED_BEHAVIOR_ARB] = "UNDEFINED_BEHAVIOR",
-				[GL.DEBUG_TYPE_PORTABILITY_ARB] = "PORTABILITY",
-				[GL.DEBUG_TYPE_PERFORMANCE_ARB] = "PERFORMANCE",
-				[GL.DEBUG_TYPE_OTHER_ARB] = "OTHER"
-			}
-
-			local gl_debug_severity_string = {
-				[GL.DEBUG_SEVERITY_HIGH_ARB] = "HIGH",
-				[GL.DEBUG_SEVERITY_MEDIUM_ARB] = "MEDIUM",
-				[GL.DEBUG_SEVERITY_LOW_ARB] = "LOW"
-			}
-
-			if (gl.DebugMessageCallbackARB) then
+			if gl.DebugMessageCallbackARB then
+				local gl_debug_source_string = {
+					[GL.DEBUG_SOURCE_API_ARB] = "API",
+					[GL.DEBUG_SOURCE_WINDOW_SYSTEM_ARB] = "WINDOW_SYSTEM",
+					[GL.DEBUG_SOURCE_SHADER_COMPILER_ARB] = "SHADER_COMPILER",
+					[GL.DEBUG_SOURCE_THIRD_PARTY_ARB] = "THIRD_PARTY",
+					[GL.DEBUG_SOURCE_APPLICATION_ARB] = "APPLICATION",
+					[GL.DEBUG_SOURCE_OTHER_ARB] = "OTHER"
+				}
+				local gl_debug_type_string = {
+					[GL.DEBUG_TYPE_ERROR_ARB] = "ERROR",
+					[GL.DEBUG_TYPE_DEPRECATED_BEHAVIOR_ARB] = "DEPRECATED_BEHAVIOR",
+					[GL.DEBUG_TYPE_UNDEFINED_BEHAVIOR_ARB] = "UNDEFINED_BEHAVIOR",
+					[GL.DEBUG_TYPE_PORTABILITY_ARB] = "PORTABILITY",
+					[GL.DEBUG_TYPE_PERFORMANCE_ARB] = "PERFORMANCE",
+					[GL.DEBUG_TYPE_OTHER_ARB] = "OTHER"
+				}
+				local gl_debug_severity_string = {
+					[GL.DEBUG_SEVERITY_HIGH_ARB] = "HIGH",
+					[GL.DEBUG_SEVERITY_MEDIUM_ARB] = "MEDIUM",
+					[GL.DEBUG_SEVERITY_LOW_ARB] = "LOW"
+				}
 				local debug_data = ffi.new("void *")
 
 				gl.DebugMessageCallbackARB(function(source, type, id, severity, length, message, userParam)
