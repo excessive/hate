@@ -227,7 +227,9 @@ function hate.init()
 			width   = 854,
 			height  = 480,
 			vsync   = true,
-			delay   = 0.001
+			delay   = 0.001,
+			fsaa    = 0, -- for love <= 0.9.1 compatibility
+			msaa    = 0,
 		},
 		timer      = true,
 		graphics   = {
@@ -262,6 +264,7 @@ function hate.init()
 			sdl.GL_SetAttribute(sdl.GL_CONTEXT_PROFILE_MASK, sdl.GL_CONTEXT_PROFILE_CORE)
 		end
 		sdl.GL_SetAttribute(sdl.GL_CONTEXT_FLAGS, sdl.GL_CONTEXT_DEBUG_FLAG)
+		sdl.GL_SetAttribute(sdl.GL_MULTISAMPLESAMPLES, math.max(config.window.fsaa or 0, config.window.msaa or 0))
 
 		local window_flags = tonumber(sdl.WINDOW_OPENGL)
 
