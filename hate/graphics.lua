@@ -6,43 +6,43 @@ local graphics = {}
 
 local function validate_shader(shader)
 	local int = ffi.new("GLint[1]")
-	gl.glGetShaderiv(shader, gl.GL_INFO_LOG_LENGTH, int)
+	gl.GetShaderiv(shader, GL.INFO_LOG_LENGTH, int)
 	local length = int[0]
 	if length <= 0 then
 		return
 	end
-	gl.glGetShaderiv(shader, gl.GL_COMPILE_STATUS, int)
+	gl.GetShaderiv(shader, GL.COMPILE_STATUS, int)
 	local success = int[0]
-	if success == gl.GL_TRUE then
+	if success == GL.TRUE then
 		return
 	end
 	local buffer = ffi.new("char[?]", length)
-	gl.glGetShaderInfoLog(shader, length, int, buffer)
+	gl.GetShaderInfoLog(shader, length, int, buffer)
 	error(ffi.string(buffer))
 end
 
 local function load_shader(src, type)
-	local shader = gl.glCreateShader(type)
+	local shader = gl.CreateShader(type)
 	if shader == 0 then
-		error("glGetError: " .. tonumber(gl.glGetError()))
+		error("glGetError: " .. tonumber(gl.GetError()))
 	end
 	local src = ffi.new("char[?]", #src, src)
 	local srcs = ffi.new("const char*[1]", src)
-	gl.glShaderSource(shader, 1, srcs, nil)
-	gl.glCompileShader(shader)
+	gl.ShaderSource(shader, 1, srcs, nil)
+	gl.CompileShader(shader)
 	validate_shader(shader)
 	return shader
 end
 
--- local vs = load_shader(vs_src, gl.GL_VERTEX_SHADER)
--- local fs = load_shader(fs_src, gl.GL_FRAGMENT_SHADER)
+-- local vs = load_shader(vs_src, GL.VERTEX_SHADER)
+-- local fs = load_shader(fs_src, GL.FRAGMENT_SHADER)
 --
--- local prog = gl.glCreateProgram()
+-- local prog = gl.CreateProgram()
 
--- gl.glAttachShader(prog, vs)
--- gl.glAttachShader(prog, fs)
--- gl.glLinkProgram(prog)
--- gl.glUseProgram(prog)
+-- gl.AttachShader(prog, vs)
+-- gl.AttachShader(prog, fs)
+-- gl.LinkProgram(prog)
+-- gl.UseProgram(prog)
 
 function graphics.clear(color, depth)
 	local mask = 0
