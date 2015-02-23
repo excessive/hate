@@ -1,6 +1,7 @@
 local current_folder = (...):gsub('%.[^%.]+$', '') .. "."
 local sdl = require(current_folder .. "sdl2")
 local ffi = require "ffi"
+local cpml = require(current_folder .. "cpml")
 
 local graphics = {}
 
@@ -142,6 +143,67 @@ local function submit_buffer(buffer_type, mode, data, count)
 		mode   = mode,
 		handle = handle
 	}
+end
+
+local function send_uniform(shader, name, data, is_int)
+	-- just a number, ez
+	-- this should probably just use the *v stuff, so it doesn't need its own codepath.
+	if type(data) == "number" then
+		local loc = gl.GetUniformLocation(shader, name)
+		local send = is_int and gl.Uniform1f or gl.Uniform1i
+		send(loc, data)
+	end
+	-- it's either a vector or matrix type
+	-- TODO: Uniform arrays
+	if type(data) == "table" then
+		if type(data[1]) == "table" then
+			-- matrix
+			-- we support any matrix between 2x2 and 4x4 as long as it makes sense.
+			assert(#data >= 2 and #data <= 4, "Unsupported column size for matrix: " .. #data .. ", must be between 2 and 4.")
+			assert(#data[1] == #data[2] == #data[3] == #data[4], "All rows in a matrix must be the same size.")
+			assert(#data[1] >= 2 and #data[1] <= 4, "Unsupported row size for matrix: " .. #data[1] .. ", must be between 2 and 4.")
+			local mtype = #data == #data[1] and tostring(#data) or tostring(#data) .. "x" .. tostring(#data[1])
+			local fn = "UniformMatrix" .. mtype .. "fv"
+			gl[fn](loc, count, GL.FALSE, data)
+		else
+			-- vector
+			assert(#data >= 2 and #data <= 4, "Unsupported size for vector type: " .. #data .. ", must be between 2 and 4.")
+			local fn = "Uniform" .. tostring(#data) .. "fv"
+			gl[fn](loc, count, data)
+		end
+	end
+end
+
+function graphics.push()
+	local stack = graphics._state.matrix_stack
+	if #stack == 0 then
+		table.insert(stack, cpml.mat4())
+	else
+		table.insert(stack, stack[#stack]:clone())
+	end
+end
+
+function graphics.pop()
+	local stack = graphics._state.matrix_stack
+	table.remove(stack)
+end
+
+function graphics.translate(x, y)
+	local stack = graphics._state.matrix_stack
+	stack[#stack] = stack[#stack]:translate(cpml.vec3(x, y, 0))
+end
+
+function graphics.rotate(r)
+	local stack = graphics._state.matrix_stack
+	stack[#stack] = stack[#stack]:rotate(r, cpml.vec3(0, 0, 1))
+end
+
+function graphics.scale(x, y)
+	stack[#stack] = stack[#stack]:scale(cpml.vec3(x, y, 1))
+end
+
+function graphics.origin()
+	stack[#stack] = stack[#stack]:identity()
 end
 
 function graphics.circle(mode, x, y, radius, segments)

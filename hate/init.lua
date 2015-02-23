@@ -230,6 +230,7 @@ function hate.init()
 			-- TODO: debug context + multiple attempts at creating contexts
 			debug   = true,
 			debug_verbose = false,
+			srgb    = false,
 			gl      = {
 				{ 3, 3 },
 				{ 2, 1 }
@@ -274,6 +275,10 @@ function hate.init()
 
 		if config.window.vsync then
 			window_flags = bit.bor(window_flags, tonumber(sdl.RENDERER_PRESENTVSYNC))
+		end
+
+		if true or config.window.srgb then
+			-- sdl.GL_SetAttribute(sdl.GL_FRAMEBUFFER_SRGB_CAPABLE, 1)
 		end
 
 		local window = sdl.createWindow(hate.config.name,
