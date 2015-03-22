@@ -115,7 +115,6 @@ function mat4:perspective(fovy, aspect, near, far)
 end
 
 function mat4:translate(t)
-	assert(type(t) == "table", "mat4.translate expects one parameter of type 'table'")
 	local m = {
 		1, 0, 0, 0,
 		0, 1, 0, 0,
@@ -126,7 +125,6 @@ function mat4:translate(t)
 end
 
 function mat4:scale(s)
-	assert(type(s) == "table", "mat4.scale expects one parameter of type 'table'")
 	local m = {
 		s.x, 0, 0, 0,
 		0, s.y, 0, 0,

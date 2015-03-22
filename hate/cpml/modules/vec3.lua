@@ -43,7 +43,7 @@ end
 local zero = new(0,0,0)
 
 local function isvector(v)
-	return type(v) == 'table' and type(v.x) == 'number' and type(v.y) == 'number' and type(v.z) == 'number' and type(v.w) == 'nil'
+	return type(v) == 'table' and type(v.x) == 'number' and type(v.y) == 'number' and type(v.z) == 'number'
 end
 
 function vector:clone()
@@ -150,7 +150,7 @@ end
 function vector:rotate(phi, axis)
 	if axis == nil then return self end
 
-	local u = axis:normalize() or new(0,0,1) -- default is to rotate in the xy plane
+	local u = axis:normalize() or Vector(0,0,1) -- default is to rotate in the xy plane
 	local c, s = cos(phi), sin(phi)
 
 	-- Calculate generalized rotation matrix
@@ -163,7 +163,7 @@ function vector:rotate(phi, axis)
 end
 
 function vector:rotate_inplace(phi, axis)
-	self = self:rotate(phi, axis)
+	self = self:rotated(phi, axis)
 end
 
 function vector:perpendicular()
@@ -209,17 +209,14 @@ end
 function vector:angle_to(other)
 	-- Only makes sense in 2D.
 	if other then
-		local angle = atan2(self.y, self.x) - atan2(other.y, other.x)
-		if angle > math.pi then angle = angle - math.pi * 2 end
-		if angle < -math.pi then angle = angle + math.pi * 2 end
-		return angle
+		return atan2(self.y, self.x) - atan2(other.y, other.x)
 	end
 	return atan2(self.y, self.x)
 end
 
 function vector:angle_between(other)
 	if other then
-		return acos(self:dot(other) / (self:len() * other:len()))
+		return acos(self*other / (self:len() * other:len()))
 	end
 	return 0
 end
@@ -231,9 +228,9 @@ end
 function vector:orientation_to_direction(orientation)
 	orientation = orientation or new(0, 1, 0)
 	return orientation
-		:rotate(self.z, new(0, 0, 1))
-		:rotate(self.y, new(0, 1, 0))
-		:rotate(self.x, new(1, 0, 0))
+		:rotated(self.z, new(0, 0, 1))
+		:rotated(self.y, new(0, 1, 0))
+		:rotated(self.x, new(1, 0, 0))
 end
 
 -- http://keithmaggio.wordpress.com/2011/02/15/math-magician-lerp-slerp-and-nlerp/

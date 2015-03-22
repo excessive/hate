@@ -36,7 +36,7 @@ end
 local zero = new(0,0)
 
 local function isvector(v)
-	return type(v) == 'table' and type(v.x) == 'number' and type(v.y) == 'number' and type(v.z) == 'nil' and type(v.w) == 'nil'
+	return type(v) == 'table' and type(v.x) == 'number' and type(v.y) == 'number'
 end
 
 function vector:clone()
@@ -176,10 +176,7 @@ end
 
 function vector:angle_to(other)
 	if other then
-		local angle = atan2(self.y, self.x) - atan2(other.y, other.x)
-		if angle > math.pi then angle = angle - math.pi * 2 end
-		if angle < -math.pi then angle = angle + math.pi * 2 end
-		return angle
+		return atan2(self.y, self.x) - atan2(other.y, other.x)
 	end
 	return atan2(self.y, self.x)
 end
