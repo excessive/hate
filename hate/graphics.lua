@@ -104,12 +104,12 @@ function graphics.getHeight()
 end
 
 function graphics.isWireframe()
-	return graphics._wireframe and true or false
+	return graphics._wireframe.enable and true or false
 end
 
 function graphics.setWireframe(enable)
-	graphics._wireframe = enable and true or false
-	gl.PolygonMode(GL.FRONT_AND_BACK, enable and GL_LINE or GL_FILL)
+	graphics._wireframe.enable = enable and true or false
+	gl.PolygonMode(GL.FRONT_AND_BACK, enable and GL.LINE or GL.FILL)
 end
 
 function graphics.setStencil(stencilfn)
@@ -188,18 +188,21 @@ function graphics.push(which)
 		table.insert(stack, {
 			matrix = cpml.mat4(),
 			color = { 255, 255, 255, 255 },
-			active_shader = graphics._active_shader
+			active_shader = graphics._active_shader,
+			wireframe = graphics._wireframe
 		})
 	else
 		local top = stack[#stack]
 		local new = {
 			matrix = top.matrix:clone(),
 			color  = top.color,
-			active_shader = top.active_shader
+			active_shader = top.active_shader,
+			wireframe = top.wireframe
 		}
 		if which == "all" then
 			new.color = { top.color[1], top.color[2], top.color[3], top.color[4] }
 			new.active_shader = { handle = top.active_shader.handle }
+			new.wireframe = { enable = top.wireframe.enable }
 		end
 		table.insert(stack, new)
 	end
@@ -215,6 +218,7 @@ function graphics.pop()
 	graphics._state.stack_top = top
 	graphics.setShader(top.active_shader)
 	graphics.setColor(top.color)
+	graphics.setWireframe(top.wireframe.enable)
 end
 
 function graphics.translate(x, y)
@@ -261,7 +265,8 @@ function graphics.circle(mode, x, y, radius, segments)
 	assert(gl.GetError() == GL.NO_ERROR)
 	local shader = graphics._active_shader.handle
 	local modelview = graphics._state.stack_top.matrix
-	local projection = cpml.mat4():ortho(0, 640, 0, 480, -100, 100)
+	local w, h = graphics.getDimensions()
+	local projection = cpml.mat4():ortho(0, w, 0, h, -100, 100)
 	local mvp = modelview * projection
 	local mat_f  = ffi.new("float[?]", 16)
 	for i = 1, 16 do
@@ -284,20 +289,8 @@ end
 
 function graphics.present()
 	sdl.GL_SwapWindow(graphics._state.window)
-end
-
-function graphics.newShader(pixelcode, vertexcode)
-	-- TODO
-end
-
-function graphics.setShader(shader)
-	if shader == nil then
-		shader = graphics._internal_shader
-	end
-	if shader ~= graphics._active_shader then
-		graphics._active_shader = shader
-		gl.UseProgram(shader._program)
-	end
+	local w, h = graphics.getDimensions()
+	gl.Viewport(0, 0, w, h)
 end
 
 function graphics.origin()
@@ -320,7 +313,7 @@ function graphics.setDepthTest(enable)
 end
 
 	local GLSL_VERSION = "#version 120"
-	
+
 	local GLSL_SYNTAX = [[
 #define lowp
 #define mediump
@@ -430,6 +423,43 @@ local function createPixelCode(pixelcode, is_multicanvas)
 	return table_concat(pixelcodes, "\n")
 end
 
+local function isVertexCode(code)
+	return code:match("vec4%s+position%s*%(") ~= nil
+end
+
+local function isPixelCode(code)
+	if code:match("vec4%s+effect%s*%(") then
+		return true
+	elseif code:match("void%s+effects%s*%(") then
+		-- function for rendering to multiple canvases simultaneously
+		return true, true
+	else
+		return false
+	end
+end
+
+function graphics.newShader(pixelcode, vertexcode)
+	local vs
+	local fs = load_shader(createPixelCode(pixelcode, false), GL.FRAGMENT_SHADER)
+	if vertexcode then
+		vs = load_shader(createVertexCode(vertexcode), GL.VERTEX_SHADER)
+	end
+	if not vertexcode and isVertexCode(pixelcode) then
+		vs = load_shader(createVertexCode(pixelcode), GL.VERTEX_SHADER)
+	end
+	return assemble_program(vs, fs)
+end
+
+function graphics.setShader(shader)
+	if shader == nil then
+		shader = graphics._internal_shader
+	end
+	if shader ~= graphics._active_shader then
+		graphics._active_shader = shader
+		gl.UseProgram(shader._program)
+	end
+end
+
 local default =
 [===[
 #ifdef VERTEX
@@ -450,9 +480,10 @@ function graphics.init()
 		gl.Enable(GL.FRAMEBUFFER_SRGB)
 	end
 	graphics._state.stack = {}
-	local vs, fs = load_shader(createVertexCode(default), GL.VERTEX_SHADER), load_shader(createPixelCode(default, false), GL.FRAGMENT_SHADER)
-	graphics._internal_shader = assemble_program(vs, fs)
+	graphics._internal_shader = graphics.newShader(default)
 	graphics._active_shader = graphics._internal_shader
+	graphics._wireframe = {}
+	graphics.setWireframe(false)
 	graphics.push("all")
 end
 
