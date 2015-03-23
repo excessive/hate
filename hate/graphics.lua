@@ -46,6 +46,10 @@ local function assemble_program(...)
 	end
 	gl.LinkProgram(prog)
 	gl.UseProgram(prog)
+
+	return {
+		handle = prog
+	}
 end
 
 function graphics.clear(color, depth)
@@ -177,37 +181,61 @@ local function send_uniform(shader, name, data, is_int)
 	end
 end
 
-function graphics.push()
-	local stack = graphics._state.matrix_stack
+function graphics.push(which)
+	local stack = graphics._state.stack
+	assert(#stack < 64, "Stack overflow - your stack is too deep, did you forget to pop?")
 	if #stack == 0 then
-		table.insert(stack, cpml.mat4())
+		table.insert(stack, {
+			matrix = cpml.mat4(),
+			color = { 255, 255, 255, 255 },
+			active_shader = graphics._active_shader
+		})
 	else
-		table.insert(stack, stack[#stack]:clone())
+		local top = stack[#stack]
+		local new = {
+			matrix = top.matrix:clone(),
+			color  = top.color,
+			active_shader = top.active_shader
+		}
+		if which == "all" then
+			new.color = { top.color[1], top.color[2], top.color[3], top.color[4] }
+			new.active_shader = { handle = top.active_shader.handle }
+		end
+		table.insert(stack, new)
 	end
+	graphics._state.stack_top = stack[#stack]
 end
 
 function graphics.pop()
-	local stack = graphics._state.matrix_stack
+	local stack = graphics._state.stack
 	assert(#stack > 1, "Stack underflow - you've popped more than you pushed!")
 	table.remove(stack)
+
+	local top = stack[#stack]
+	graphics._state.stack_top = top
+	graphics.setShader(top.active_shader)
+	graphics.setColor(top.color)
 end
 
 function graphics.translate(x, y)
-	local stack = graphics._state.matrix_stack
-	stack[#stack] = stack[#stack]:translate(cpml.vec3(x, y, 0))
+	local top = graphics._state.stack_top
+	top.matrix = top.matrix:translate(cpml.vec3(x, y, 0))
 end
 
 function graphics.rotate(r)
-	local stack = graphics._state.matrix_stack
-	stack[#stack] = stack[#stack]:rotate(r, cpml.vec3(0, 0, 1))
+	assert(type(r) == "number")
+	local top = graphics._state.stack_top
+	top.matrix = top.matrix:rotate(r, { 0, 0, 1 })
 end
 
 function graphics.scale(x, y)
-	stack[#stack] = stack[#stack]:scale(cpml.vec3(x, y, 1))
+	local top = graphics._state.stack_top
+	top.matrix = top.matrix:scale(cpml.vec3(x, y, 1))
 end
 
 function graphics.origin()
-	stack[#stack] = stack[#stack]:identity()
+	local top = graphics._state.stack_top
+	top.matrix = top.matrix:identity()
 end
 
 function graphics.circle(mode, x, y, radius, segments)
@@ -222,23 +250,36 @@ function graphics.circle(mode, x, y, radius, segments)
 
 	for i=0, segments do
 		local angle = (i / segments) * math.pi * 2
-		local px = x + math.cos(angle) * radius
-		local py = y + math.sin(angle) * radius
-
-		data[(i*2)+2] = px
-		data[(i*2)+3] = py
+		data[(i*2)+2] = x + math.cos(angle) * radius
+		data[(i*2)+3] = y + math.sin(angle) * radius
 	end
+
+	gl.PolygonMode(GL.FRONT_AND_BACK, GL.LINE)
 
 	local buf = submit_buffer(GL.ARRAY_BUFFER, GL.TRIANGLE_FAN, data, count)
 	local vao = ffi.new("GLuint[1]")
 	assert(gl.GetError() == GL.NO_ERROR)
-	-- gl.GenVertexArrays(1, vao)
-	-- gl.BindVertexArray(vao[0])
+	local shader = graphics._active_shader.handle
+	local modelview = graphics._state.stack_top.matrix
+	local projection = cpml.mat4():ortho(0, 640, 0, 480, -100, 100)
+	local mvp = projection * modelview
+	local mat_f  = ffi.new("float[?]", 16)
+	for i = 1, 16 do
+		mat_f[i-1] = modelview[i]
+	end
+	-- gl.UniformMatrix4fv(gl.GetUniformLocation(shader, "HATE_ModelViewMatrix"), 1, false, mat_f)
+	for i = 1, 16 do
+		mat_f[i-1] = projection[i]
+	end
+	-- gl.UniformMatrix4fv(gl.GetUniformLocation(shader, "HATE_ProjectionMatrix"), 1, false, mat_f)
+	for i = 1, 16 do
+		mat_f[i-1] = mvp[i]
+	end
+	gl.UniformMatrix4fv(gl.GetUniformLocation(shader, "HATE_ModelViewProjectionMatrix"), 1, false, mat_f)
 	gl.BindBuffer(buf.buffer_type, buf.handle[0])
 	gl.EnableVertexAttribArray(0)
 	gl.VertexAttribPointer(0, 2, GL.FLOAT, GL.FALSE, 0, ffi.cast("void*", 0))
 	gl.DrawArrays(buf.mode, 0, buf.count)
-	-- gl.DeleteVertexArrays(1, vao)
 end
 
 function graphics.present()
@@ -267,12 +308,152 @@ function graphics.reset()
 	gl.ClearColor(0, 0, 0, 255)
 end
 
+-- todo: different depth functions, range, clear depth
+function graphics.setDepthTest(enable)
+	if enable ~= nil and graphics._state.depth_test ~= enable then
+		if enable then
+			gl.Enable(GL.DEPTH_TEST)
+		else
+			gl.Disable(GL.DEPTH_TEST)
+		end
+	end
+end
+
+	local GLSL_VERSION = "#version 120"
+	
+	local GLSL_SYNTAX = [[
+#define lowp
+#define mediump
+#define highp
+#define number float
+#define Image sampler2D
+#define extern uniform
+#define Texel texture2D
+#pragma optionNV(strict on)]]
+
+	local GLSL_UNIFORMS = [[
+#define TransformMatrix HATE_ModelViewMatrix
+#define ProjectionMatrix HATE_ProjectionMatrix
+#define TransformProjectionMatrix HATE_ModelViewProjectionMatrix
+
+#define NormalMatrix gl_NormalMatrix
+
+uniform mat4 HATE_ModelViewMatrix;
+uniform mat4 HATE_ProjectionMatrix;
+uniform mat4 HATE_ModelViewProjectionMatrix;
+
+//uniform sampler2D _tex0_;
+//uniform vec4 love_ScreenSize;]]
+
+	local GLSL_VERTEX = {
+		HEADER = [[
+#define VERTEX
+
+#define VertexPosition gl_Vertex
+#define VertexTexCoord gl_MultiTexCoord0
+#define VertexColor gl_Color
+
+#define VaryingTexCoord gl_TexCoord[0]
+#define VaryingColor gl_FrontColor
+
+// #if defined(GL_ARB_draw_instanced)
+//	#extension GL_ARB_draw_instanced : enable
+//	#define love_InstanceID gl_InstanceIDARB
+// #else
+//	attribute float love_PseudoInstanceID;
+//	int love_InstanceID = int(love_PseudoInstanceID);
+// #endif
+]],
+
+		FOOTER = [[
+void main() {
+	VaryingTexCoord = VertexTexCoord;
+	VaryingColor = VertexColor;
+	gl_Position = position(TransformProjectionMatrix, VertexPosition);
+}]],
+	}
+
+	local GLSL_PIXEL = {
+		HEADER = [[
+#define PIXEL
+
+#define VaryingTexCoord gl_TexCoord[0]
+#define VaryingColor gl_Color
+
+#define love_Canvases gl_FragData]],
+
+		FOOTER = [[
+void main() {
+	// fix crashing issue in OSX when _tex0_ is unused within effect()
+	//float dummy = Texel(_tex0_, vec2(.5)).r;
+
+	// See Shader::checkSetScreenParams in Shader.cpp.
+	// exists to fix x/y when using canvases
+	//vec2 pixelcoord = vec2(gl_FragCoord.x, (gl_FragCoord.y * love_ScreenSize.z) + love_ScreenSize.w);
+
+	gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+	//gl_FragColor = effect(VaryingColor, _tex0_, VaryingTexCoord.st, pixelcoord);
+}]],
+
+		FOOTER_MULTI_CANVAS = [[
+void main() {
+	// fix crashing issue in OSX when _tex0_ is unused within effect()
+	float dummy = Texel(_tex0_, vec2(.5)).r;
+
+	// See Shader::checkSetScreenParams in Shader.cpp.
+	vec2 pixelcoord = vec2(gl_FragCoord.x, (gl_FragCoord.y * love_ScreenSize.z) + love_ScreenSize.w);
+
+	effects(VaryingColor, _tex0_, VaryingTexCoord.st, pixelcoord);
+}]],
+	}
+
+local table_concat = table.concat
+local function createVertexCode(vertexcode)
+	local vertexcodes = {
+		GLSL_VERSION,
+		GLSL_SYNTAX, GLSL_VERTEX.HEADER, GLSL_UNIFORMS,
+		"#line 0",
+		vertexcode,
+		GLSL_VERTEX.FOOTER,
+	}
+	return table_concat(vertexcodes, "\n")
+end
+
+local function createPixelCode(pixelcode, is_multicanvas)
+	local pixelcodes = {
+		GLSL_VERSION,
+		GLSL_SYNTAX, GLSL_PIXEL.HEADER, GLSL_UNIFORMS,
+		"#line 0",
+		pixelcode,
+		is_multicanvas and GLSL_PIXEL.FOOTER_MULTI_CANVAS or GLSL_PIXEL.FOOTER,
+	}
+	return table_concat(pixelcodes, "\n")
+end
+
+local default =
+[===[
+#ifdef VERTEX
+vec4 position(mat4 transform_proj, vec4 vertpos) {
+	return transform_proj * vertpos;
+}
+#endif
+
+#ifdef PIXEL
+vec4 effect(lowp vec4 vcolor, Image tex, vec2 texcoord, vec2 pixcoord) {
+	return Texel(tex, texcoord) * vcolor;
+}
+#endif
+]===]
+
 function graphics.init()
 	if graphics._state.config.window.srgb then
 		gl.Enable(GL.FRAMEBUFFER_SRGB)
 	end
-	graphics._state.matrix_stack = {}
-	graphics.push()
+	graphics._state.stack = {}
+	local vs, fs = load_shader(createVertexCode(default), GL.VERTEX_SHADER), load_shader(createPixelCode(default, false), GL.FRAGMENT_SHADER)
+	graphics._internal_shader = assemble_program(vs, fs)
+	graphics._active_shader = graphics._internal_shader
+	graphics.push("all")
 end
 
 return graphics
