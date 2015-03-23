@@ -254,7 +254,7 @@ function graphics.circle(mode, x, y, radius, segments)
 		data[(i*2)+3] = y + math.sin(angle) * radius
 	end
 
-	gl.PolygonMode(GL.FRONT_AND_BACK, GL.LINE)
+	-- gl.PolygonMode(GL.FRONT_AND_BACK, GL.LINE)
 
 	local buf = submit_buffer(GL.ARRAY_BUFFER, GL.TRIANGLE_FAN, data, count)
 	local vao = ffi.new("GLuint[1]")
@@ -262,16 +262,16 @@ function graphics.circle(mode, x, y, radius, segments)
 	local shader = graphics._active_shader.handle
 	local modelview = graphics._state.stack_top.matrix
 	local projection = cpml.mat4():ortho(0, 640, 0, 480, -100, 100)
-	local mvp = projection * modelview
+	local mvp = modelview * projection
 	local mat_f  = ffi.new("float[?]", 16)
 	for i = 1, 16 do
 		mat_f[i-1] = modelview[i]
 	end
-	-- gl.UniformMatrix4fv(gl.GetUniformLocation(shader, "HATE_ModelViewMatrix"), 1, false, mat_f)
+	gl.UniformMatrix4fv(gl.GetUniformLocation(shader, "HATE_ModelViewMatrix"), 1, false, mat_f)
 	for i = 1, 16 do
 		mat_f[i-1] = projection[i]
 	end
-	-- gl.UniformMatrix4fv(gl.GetUniformLocation(shader, "HATE_ProjectionMatrix"), 1, false, mat_f)
+	gl.UniformMatrix4fv(gl.GetUniformLocation(shader, "HATE_ProjectionMatrix"), 1, false, mat_f)
 	for i = 1, 16 do
 		mat_f[i-1] = mvp[i]
 	end
@@ -279,7 +279,7 @@ function graphics.circle(mode, x, y, radius, segments)
 	gl.BindBuffer(buf.buffer_type, buf.handle[0])
 	gl.EnableVertexAttribArray(0)
 	gl.VertexAttribPointer(0, 2, GL.FLOAT, GL.FALSE, 0, ffi.cast("void*", 0))
-	gl.DrawArrays(buf.mode, 0, buf.count)
+	gl.DrawArrays(buf.mode, 0, buf.count / 2)
 end
 
 function graphics.present()
