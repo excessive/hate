@@ -92,7 +92,13 @@ local function handle_events()
 		end,
 		[sdl.MOUSEMOTION] = function(event) end,
 		-- resize, minimize, etc.
-		[sdl.WINDOWEVENT] = function(event) end,
+		[sdl.WINDOWEVENT] = function(event)
+			local window = event.window
+			if window.event == sdl.WINDOWEVENT_RESIZED then
+				local w, h = tonumber(window.data1), tonumber(window.data2)
+				hate.resize(w, h)
+			end
+		end,
 		[sdl.MOUSEBUTTONDOWN] = function(event)
 			local e = event.button
 			print(e.x, e.y)
@@ -196,7 +202,7 @@ function hate.init()
 	local callbacks = {
 		"load", "quit", "conf",
 		"keypressed", "keyreleased",
-		"textinput"
+		"textinput", "resize"
 	}
 
 	for _, v in ipairs(callbacks) do
@@ -303,6 +309,17 @@ function hate.init()
 		hate.state.gl_context = ctx
 
 		sdl.GL_MakeCurrent(window, ctx)
+
+		if config.window.vsync then
+			if type(config.window.vsync) == "number" then
+				sdl.GL_SetSwapInterval(config.window.vsync)
+			else
+				sdl.GL_SetSwapInterval(1)
+			end
+		else
+			sdl.GL_SetSwapInterval(0)
+		end
+
 
 		opengl.loader = function(fn)
 			local ptr = sdl.GL_GetProcAddress(fn)
