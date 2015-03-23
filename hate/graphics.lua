@@ -5,24 +5,23 @@ local cpml = require(current_folder .. "cpml")
 
 local graphics = {}
 
-local function validate_shader(shader)
-	local int = ffi.new("GLint[1]")
-	gl.GetShaderiv(shader, GL.INFO_LOG_LENGTH, int)
-	local length = int[0]
-	if length <= 0 then
-		return
-	end
-	gl.GetShaderiv(shader, GL.COMPILE_STATUS, int)
-	local success = int[0]
-	if success == GL.TRUE then
-		return
-	end
-	local buffer = ffi.new("char[?]", length)
-	gl.GetShaderInfoLog(shader, length, int, buffer)
-	error(ffi.string(buffer))
-end
-
 local function load_shader(src, type)
+	local function validate(shader)
+		local int = ffi.new("GLint[1]")
+		gl.GetShaderiv(shader, GL.INFO_LOG_LENGTH, int)
+		local length = int[0]
+		if length <= 0 then
+			return
+		end
+		gl.GetShaderiv(shader, GL.COMPILE_STATUS, int)
+		local success = int[0]
+		if success == GL.TRUE then
+			return
+		end
+		local buffer = ffi.new("char[?]", length)
+		gl.GetShaderInfoLog(shader, length, int, buffer)
+		error(ffi.string(buffer))
+	end
 	local shader = gl.CreateShader(type)
 	if shader == 0 then
 		error("glGetError: " .. tonumber(gl.GetError()))
@@ -31,19 +30,23 @@ local function load_shader(src, type)
 	local srcs = ffi.new("const char*[1]", src)
 	gl.ShaderSource(shader, 1, srcs, nil)
 	gl.CompileShader(shader)
-	validate_shader(shader)
-	return shader
+	validate(shader)
+	return {
+		handle = shader,
+		type = type
+	}
 end
 
--- local vs = load_shader(vs_src, GL.VERTEX_SHADER)
--- local fs = load_shader(fs_src, GL.FRAGMENT_SHADER)
---
--- local prog = gl.CreateProgram()
+local function assemble_program(...)
+	local shaders = {...}
 
--- gl.AttachShader(prog, vs)
--- gl.AttachShader(prog, fs)
--- gl.LinkProgram(prog)
--- gl.UseProgram(prog)
+	local prog = gl.CreateProgram()
+	for _, shader in ipairs(shaders) do
+		gl.AttachShader(prog, shader.handle)
+	end
+	gl.LinkProgram(prog)
+	gl.UseProgram(prog)
+end
 
 function graphics.clear(color, depth)
 	local mask = 0
@@ -185,6 +188,7 @@ end
 
 function graphics.pop()
 	local stack = graphics._state.matrix_stack
+	assert(#stack > 1, "Stack underflow - you've popped more than you pushed!")
 	table.remove(stack)
 end
 
@@ -261,6 +265,14 @@ end
 
 function graphics.reset()
 	gl.ClearColor(0, 0, 0, 255)
+end
+
+function graphics.init()
+	if graphics._state.config.window.srgb then
+		gl.Enable(GL.FRAMEBUFFER_SRGB)
+	end
+	graphics._state.matrix_stack = {}
+	graphics.push()
 end
 
 return graphics

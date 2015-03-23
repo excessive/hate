@@ -119,14 +119,14 @@ function hate.run()
 	-- TODO: remove this.
 	local config = hate.config
 
-	--[[
 	if hate.math then
+	--[[
 		hate.math.setRandomSeed(os.time())
 
 		-- first few randoms aren't good, throw them out.
 		for i=1,3 do hate.math.random() end
-	end
 	--]]
+	end
 
 	hate.load(arg)
 
@@ -230,12 +230,13 @@ function hate.init()
 			-- TODO: debug context + multiple attempts at creating contexts
 			debug   = true,
 			debug_verbose = false,
-			srgb    = false,
+			srgb    = true,
 			gl      = {
 				{ 3, 3 },
 				{ 2, 1 }
 			}
 		},
+		math       = true,
 		timer      = true,
 		graphics   = true,
 		system     = true
@@ -247,8 +248,13 @@ function hate.init()
 
 	hate.state = {}
 	hate.state.running = true
+	hate.state.config = config
 
 	sdl.init(sdl.INIT_EVERYTHING)
+
+	if config.math then
+		hate.math = require(current_folder .. "math")
+	end
 
 	if config.timer then
 		hate.timer = require(current_folder .. "timer")
@@ -277,8 +283,9 @@ function hate.init()
 			window_flags = bit.bor(window_flags, tonumber(sdl.RENDERER_PRESENTVSYNC))
 		end
 
-		if true or config.window.srgb then
-			-- sdl.GL_SetAttribute(sdl.GL_FRAMEBUFFER_SRGB_CAPABLE, 1)
+		if config.window.srgb and jit.os ~= "Linux" then
+			-- print(sdl.GL_FRAMEBUFFER_SRGB_CAPABLE)
+			sdl.GL_SetAttribute(sdl.GL_FRAMEBUFFER_SRGB_CAPABLE, 1)
 		end
 
 		local window = sdl.createWindow(hate.config.name,
@@ -286,9 +293,10 @@ function hate.init()
 			hate.config.window.width, hate.config.window.height,
 			window_flags
 		)
+		assert(window)
+
 		local ctx = sdl.GL_CreateContext(window)
 
-		assert(window)
 		assert(ctx)
 
 		hate.state.window = window
@@ -361,8 +369,8 @@ function hate.init()
 		if config.graphics then
 			hate.graphics = require(current_folder .. "graphics")
 			hate.graphics._state = hate.state
+			hate.graphics.init()
 		end
-
 	end
 
 	if config.system then
