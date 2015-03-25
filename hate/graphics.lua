@@ -53,6 +53,9 @@ local function assemble_program(...)
 end
 
 function graphics.clear(color, depth)
+	local w, h = graphics.getDimensions()
+	gl.Viewport(0, 0, w, h)
+
 	local mask = 0
 	if color == nil or color then
 		mask = bit.bor(mask, tonumber(GL.COLOR_BUFFER_BIT))
@@ -289,8 +292,6 @@ end
 
 function graphics.present()
 	sdl.GL_SwapWindow(graphics._state.window)
-	local w, h = graphics.getDimensions()
-	gl.Viewport(0, 0, w, h)
 end
 
 function graphics.origin()
