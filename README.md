@@ -6,6 +6,8 @@ HATE (capitalize it however you like, or put one of those umlauts in, I don't ca
 
 It's not nearly ready for use by anyone - so either help me implement more APIs or go use LÖVE!
 
+[![Build Status](https://travis-ci.org/excessive/hate.svg)](https://travis-ci.org/excessive/hate)
+
 # Dependencies
 
 * PhysFS 2.0+
