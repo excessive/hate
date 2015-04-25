@@ -1,0 +1,3 @@
+[submodule "hate/cpml"]
+	path = hate/cpml
+	url = https://github.com/excessive/cpml.git
