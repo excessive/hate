@@ -242,10 +242,12 @@ function hate.init()
 				{ 2, 1 }
 			}
 		},
-		math       = true,
-		timer      = true,
-		graphics   = true,
-		system     = true
+		modules = {
+			math       = true,
+			timer      = true,
+			graphics   = true,
+			system     = true,
+		}
 	}
 
 	hate.conf(config)
@@ -258,16 +260,16 @@ function hate.init()
 
 	sdl.init(sdl.INIT_EVERYTHING)
 
-	if config.math then
+	if config.modules.math then
 		hate.math = require(current_folder .. "math")
 	end
 
-	if config.timer then
+	if config.modules.timer then
 		hate.timer = require(current_folder .. "timer")
 		hate.timer.init()
 	end
 
-	if config.window then
+	if config.modules.window then
 		-- FIXME
 		-- if flags.gl3 then
 		-- 	sdl.GL_SetAttribute(sdl.GL_CONTEXT_MAJOR_VERSION, 3)
@@ -383,14 +385,14 @@ function hate.init()
 		hate.window = require(current_folder .. "window")
 		hate.window._state = hate.state
 
-		if config.graphics then
+		if config.modules.graphics then
 			hate.graphics = require(current_folder .. "graphics")
 			hate.graphics._state = hate.state
 			hate.graphics.init()
 		end
 	end
 
-	if config.system then
+	if config.modules.system then
 		hate.system = require(current_folder .. "system")
 	end
 
