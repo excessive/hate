@@ -53,7 +53,7 @@ function timer.step()
 end
 
 function timer.getDelta()
-	return last_delta
+	return tonumber(last_delta)
 end
 
 function timer.sleep(seconds)
@@ -61,11 +61,11 @@ function timer.sleep(seconds)
 end
 
 function timer.getAverageDelta()
-	return average_delta
+	return tonumber(average_delta)
 end
 
 function timer.getTime()
-	return last / sdl.getPerformanceFrequency()
+	return tonumber(last / sdl.getPerformanceFrequency())
 end
 
 function timer.getFPS()
