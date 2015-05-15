@@ -103,7 +103,7 @@ function filesystem.read(path, length)
 	end
 	assert(filesystem.exists(path), "The file \"" .. path .. "\") does not exist.")
 	local f = physfs.openRead(path)
-	local bytes = tonumber(physfs.fileLength(f))
+	local bytes = length or tonumber(physfs.fileLength(f))
 	local buf = ffi.new("unsigned char[?]", bytes)
 	local read = tonumber(physfs.read(f, buf, 1, bytes))
 
@@ -129,6 +129,16 @@ end
 function filesystem.exists(path)
 	assert(type(path) == "string", "hate.filesystem.exists accepts one parameter of type 'string'")
 	return physfs.exists(path) ~= 0
+end
+
+function filesystem.isFile(path)
+	assert(type(path) == "string", "hate.filesystem.isFile accepts one parameter of type 'string'")
+	return physfs.exists(path) ~= 0 and physfs.isDirectory(path) == 0
+end
+
+function filesystem.isDirectory(path)
+	assert(type(path) == "string", "hate.filesystem.isDirectory accepts one parameter of type 'string'")
+	return physfs.exists(path) ~= 0 and physfs.isDirectory(path) ~= 0
 end
 
 function filesystem.setSymlinksEnabled(value)
