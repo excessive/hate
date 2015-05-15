@@ -7,6 +7,8 @@ This is a pretty sad state of affairs! Please help!
    * missing some callbacks
    * love.focus
    * love.mousefocus
+   * love.mousemoved
+   * love.wheelmoved
    * love.mousepressed & love.mousereleased
       * stubbed, need to fire events
    * love.resize
@@ -16,6 +18,10 @@ This is a pretty sad state of affairs! Please help!
    * love.threaderror
       * depends on hate.thread
    * love.visible
+   * love.touchpressed
+   * love.touchreleased
+   * love.touchmoved
+   * love.lowmemory
    * haven't touched joysticks! will need:
       * love.gamepadaxis
       * love.gamepadpressed
@@ -36,12 +42,12 @@ This is a pretty sad state of affairs! Please help!
 * love.keyboard
 * love.joystick
 * love.mouse
-* love.math
 * love.physics
 * love.thread
 
 ## Started
 
+* love.math
 * love.keypressed & love.keyreleased
   * Missing many key codes, otherwise done.
 * love.errhand
