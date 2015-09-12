@@ -247,6 +247,7 @@ function hate.init()
 			timer      = true,
 			graphics   = true,
 			system     = true,
+			window     = true,
 		}
 	}
 
